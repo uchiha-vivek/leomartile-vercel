@@ -126,6 +126,7 @@ const ChatWidget = () => {
               type="text"
               placeholder="Type a message..."
               value={input}
+              className="input_field"
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
@@ -189,6 +190,10 @@ const styles = `
     right: 30px;
 }
 
+.input_field {
+    width: 300px
+}
+
 .chatbox__button {
     text-align: right;
     padding: 10px;
@@ -210,8 +215,8 @@ const styles = `
     display: flex;
     flex-direction: column;
     background: #eee;
-    width: 300px;
-    height: 480px;
+    width: 400px;
+    height: 580px;
     transition: all .5s ease-in-out;
 }
 
