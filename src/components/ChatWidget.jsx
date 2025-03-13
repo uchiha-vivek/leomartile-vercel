@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { FaComments, FaTimes, FaPaperPlane } from "react-icons/fa";
+import ReactMarkdown from "react-markdown";
 
-const API_BASE_URL = "https://leo-production-v0-gkbte5aadncxfsbq.eastus-01.azurewebsites.net/ "; // Update if needed
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [threadId, setThreadId] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [sending, setSending] = useState(false);
   const chatBoxRef = useRef(null);
 
   useEffect(() => {
@@ -33,6 +36,7 @@ const ChatWidget = () => {
   const sendMessage = async () => {
     if (!input.trim() || !threadId) return;
 
+    setSending(true);
     const newMessage = { role: "user", content: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
@@ -47,9 +51,11 @@ const ChatWidget = () => {
     } catch (error) {
       console.error("Error sending message:", error);
     }
+    setSending(false);
   };
 
   const getResponse = async () => {
+    setIsTyping(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/get-response`, {
         thread_id: threadId,
@@ -61,51 +67,60 @@ const ChatWidget = () => {
     } catch (error) {
       console.error("Error fetching response:", error);
     }
+    setIsTyping(false);
   };
 
   return (
     <div className="fixed bottom-4 right-4 z-50 chatbox">
-      {/* Floating Chat Button */}
       {!isOpen && (
-        <button
-          className="chatbox__button"
-          onClick={() => setIsOpen(true)}
-        >
+        <button className="chatbox__button" onClick={() => setIsOpen(true)}>
           <FaComments size={35} />
         </button>
       )}
-
-      {/* Chat Box */}
       {isOpen && (
         <div className="chatbox__support">
-          {/* Header */}
           <div className="bg-blue-600 text-white p-3 flex justify-between items-center rounded-t-lg">
-            <div className="chatbox__header">
+          <div className="chatbox__header">
             <span className=" chatbox__heading--header font-semibold">Chat with Leo</span>
             </div>
             <FaTimes className="chatbox__close-btn" onClick={() => setIsOpen(false)} />
           </div>
 
-          {/* Chat Messages */}
           <div className="chatbox__messages">
             {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`messages__item ${
-                  msg.role === "user"
-                    ? "messages__item--operator"
-                    : msg.role === "assistant"
-                    ? "messages__item--visitor"
-                    : "bg-gray-200 text-gray-800"
-                }`}
-              >
-                {msg.content}
-              </div>
+            <div
+            key={index}
+            className={`messages__item ${msg.role === "user" ? "messages__item--operator" : "messages__item--visitor"}`}
+          >
+            {msg.role === "assistant" ? (
+            <ReactMarkdown
+            components={{
+              img: ({ node }) => (
+                <img
+                  src={node.properties.src}
+                  alt={node.properties.alt}
+                  className="custom-image-class"
+                />
+              ),
+            }}
+          >
+            {msg.content}
+          </ReactMarkdown>
+            ) : (
+              msg.content
+            )}
+          </div>
             ))}
+            {isTyping && (
+              <div className="messages__item messages__item--visitor loading">
+                <span className="dot-flashing"></span>
+                <span className="dot-flashing"></span>
+                <span className="dot-flashing"></span>
+              </div>
+            )}
             <div ref={chatBoxRef}></div>
           </div>
 
-          {/* Input Box */}
           <div className="chatbox__footer">
             <input
               type="text"
@@ -115,10 +130,15 @@ const ChatWidget = () => {
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <button
-              className="chatbox__send--footer chatbox-send-button"
+              className={`chatbox__send--footer chatbox-send-button ${sending ? "sending" : ""}`}
               onClick={sendMessage}
+              disabled={sending}
             >
-              <FaPaperPlane />
+              {sending ? (
+                <div className="dot-flashing"></div>
+              ) : (
+                <FaPaperPlane />
+              )}
             </button>
           </div>
         </div>
@@ -126,9 +146,43 @@ const ChatWidget = () => {
     </div>
   );
 };
-
 const styles = `
 
+  .react-markdown {
+    word-wrap: break-word;
+  }
+  .custom-image-class {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 2px 0;
+
+}
+  .dot-flashing {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 1px;
+    border-radius: 50%;
+    background-color: black;
+    animation: dotFlashing 1s infinite linear;
+  }
+
+  @keyframes dotFlashing {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+
+  .chatbox-send-button.sending {
+    animation: pulse 0.6s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
 .chatbox {
     position: absolute;
     bottom: 30px;
@@ -157,7 +211,7 @@ const styles = `
     flex-direction: column;
     background: #eee;
     width: 300px;
-    height: 400px;
+    height: 480px;
     transition: all .5s ease-in-out;
 }
 
@@ -236,6 +290,9 @@ const styles = `
     background: #E0E0E0;
     padding: 8px 12px;
     max-width: 70%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 .chat-container {
   margin: 20px auto;
@@ -301,21 +358,6 @@ const styles = `
     white-space: pre-wrap;
   }
 
-  .loading .dot-flashing {
-    display: inline-block;
-    position: relative;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #cbd5e0;
-    animation: dot-flashing 1s infinite linear;
-  }
-
-  @keyframes dot-flashing {
-    0% { opacity: 0.2; }
-    50% { opacity: 1; }
-    100% { opacity: 0.2; }
-  }
 .message {
   margin: 10px 0;
   display: flex;
@@ -376,25 +418,6 @@ const styles = `
   cursor: not-allowed;
 }
 
-.loading {
-  display: inline-block;
-  padding: 15px;
-}
-
-.dot-flashing {
-  position: relative;
-  width: 6px;
-  height: 6px;
-  border-radius: 3px;
-  background-color: #999;
-  animation: dotFlashing 1s infinite linear;
-}
-
-@keyframes dotFlashing {
-  0% { background-color: #999; }
-  50% { background-color: #eee; }
-  100% { background-color: #999; }
-}
 `;
 
 export default function FloatingChat() {
