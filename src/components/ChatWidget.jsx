@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { FaComments, FaTimes, FaPaperPlane } from "react-icons/fa";
+import { FaComments, FaTimes, FaPaperPlane, FaShoppingCart } from "react-icons/fa";
+import { FaRegArrowAltCircleRight } from "react-icons/fa";
+import { BsEmojiSmile } from "react-icons/bs";
+import { TbSquareRoundedArrowRight } from "react-icons/tb";
 import ReactMarkdown from "react-markdown";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -32,7 +35,9 @@ const ChatWidget = () => {
       console.error("Error creating thread:", error);
     }
   };
-
+  const sendClick = () => {
+    console.log('clicked !')
+  }
   const sendMessage = async () => {
     if (!input.trim() || !threadId) return;
 
@@ -80,36 +85,37 @@ const ChatWidget = () => {
       {isOpen && (
         <div className="chatbox__support">
           <div className="bg-blue-600 text-white p-3 flex justify-between items-center rounded-t-lg">
-          <div className="chatbox__header">
-            <span className=" chatbox__heading--header font-semibold">Chat with Leo</span>
+            <div className="chatbox__header">
+              <FaShoppingCart className="chatbox_icon" />
+              <span className=" chatbox__heading--header font-semibold">Chat with Leo</span>
             </div>
             <FaTimes className="chatbox__close-btn" onClick={() => setIsOpen(false)} />
           </div>
 
           <div className="chatbox__messages">
             {messages.map((msg, index) => (
-            <div
-            key={index}
-            className={`messages__item ${msg.role === "user" ? "messages__item--operator" : "messages__item--visitor"}`}
-          >
-            {msg.role === "assistant" ? (
-            <ReactMarkdown
-            components={{
-              img: ({ node }) => (
-                <img
-                  src={node.properties.src}
-                  alt={node.properties.alt}
-                  className="custom-image-class"
-                />
-              ),
-            }}
-          >
-            {msg.content}
-          </ReactMarkdown>
-            ) : (
-              msg.content
-            )}
-          </div>
+              <div
+                key={index}
+                className={`messages__item ${msg.role === "user" ? "messages__item--operator" : "messages__item--visitor"}`}
+              >
+                {msg.role === "assistant" ? (
+                  <ReactMarkdown
+                    components={{
+                      img: ({ node }) => (
+                        <img
+                          src={node.properties.src}
+                          alt={node.properties.alt}
+                          className="custom-image-class"
+                        />
+                      ),
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                ) : (
+                  msg.content
+                )}
+              </div>
             ))}
             {isTyping && (
               <div className="messages__item messages__item--visitor loading">
@@ -122,26 +128,29 @@ const ChatWidget = () => {
           </div>
 
           <div className="chatbox__footer">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={input}
-              className="input_field"
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            />
-            <button
-              className={`chatbox__send--footer chatbox-send-button ${sending ? "sending" : ""}`}
-              onClick={sendMessage}
-              disabled={sending}
-            >
-              {sending ? (
-                <div className="dot-flashing"></div>
-              ) : (
-                <FaPaperPlane />
-              )}
-            </button>
+            <div className="input-container">
+               
+              <input
+                type="text"
+                placeholder="Type a message..."
+                value={input}
+                className="input_field"
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              />
+              
+              <BsEmojiSmile className="emoji-icon" size={20} />
+              {
+                sending ? (
+                  <div className="dot-flashing" ></div>
+                ) :
+                (
+                  <TbSquareRoundedArrowRight size={30} onClick={sendMessage} className="send-icon" />
+                )
+              }
+            </div>
           </div>
+
         </div>
       )}
     </div>
@@ -221,20 +230,30 @@ const styles = `
 }
 
 .chatbox__header {
-    background: #101010;
-    display: flex;
-    flex-direction: row;
-    padding: 15px 20px;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
-    box-shadow: var(--primaryBoxShadow);
-    position: sticky;
-    top: 0;
+    background: #4d22d9;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 20px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: var(--primaryBoxShadow);
+            position: sticky;
+            top: 0;
+            gap: 8px; /* Space between icon and text */
 }
+.chatbox__icon {
+            color: white;
+            font-size: 1.4rem;
+            margin-right:auto;
+            margin-left:0
+          }
 
 .chatbox__heading--header {
     font-size: 1.2rem;
     color: white;
+    font-weight:bold
 }
 
 .chatbox__messages {
@@ -261,7 +280,7 @@ const styles = `
     align-items: baseline;
     justify-content: space-between;
     padding: 20px 20px;
-    background: #0c0c0c;
+    // background: #0c0c0c;
     box-shadow: var(--secondaryBoxShadow);
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
@@ -278,7 +297,23 @@ const styles = `
     position: sticky;
     bottom: 0;
 }
+.chatbox__icons {
+  position: absolute;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
+
+
+.chatbox-send-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  // color: #007bff;
+}
 .chatbox__send--footer {
     color: white;
 }
@@ -315,6 +350,48 @@ const styles = `
 .messages__item--visitor {
     margin-right: auto;
 }
+
+
+.input-container {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  padding: 8px;
+  width: 100%;
+  position: relative;
+}
+
+.input_field {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 8px 40px; /* Space for icons */
+  font-size: 1rem;
+}
+
+.emoji-icon {
+  position: absolute;
+  margin-right:10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.send-icon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  // color: #007bff;
+}
+
+.send-icon:hover {
+  color: #0056b3;
+}
+
+
+
+
 
 .messages__item--visitor,
 .messages__item--typing {
@@ -421,6 +498,10 @@ const styles = `
 .input-area button:disabled {
   background: #6c757d;
   cursor: not-allowed;
+}
+
+.dot-flash-progress {
+
 }
 
 `;
