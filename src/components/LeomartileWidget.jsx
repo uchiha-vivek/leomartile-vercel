@@ -4,9 +4,10 @@ import { BsCartDash } from "react-icons/bs";
 import { MdOutlineEmojiEmotions } from "react-icons/md";
 import { CiLocationArrow1 } from "react-icons/ci";
 import ReactMarkdown from "react-markdown";
+import EmojiPicker from "emoji-picker-react"; // Import the emoji picker
 import "./style.css";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,7 @@ const ChatWidget = () => {
   const [threadId, setThreadId] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [sending, setSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false); // State for emoji picker visibility
   const chatBoxRef = useRef(null);
 
   useEffect(() => {
@@ -50,7 +52,6 @@ const ChatWidget = () => {
         thread_id: threadId,
         content: userInput,
       });
-
       getResponse();
     } catch (error) {
       console.error("Error sending message:", error);
@@ -78,9 +79,15 @@ const ChatWidget = () => {
     setIsOpen(!isOpen);
   };
 
+  // Function to handle emoji selection
+  const handleEmojiClick = (emojiObject) => {
+    setInput((prevInput) => prevInput + emojiObject.emoji); // Append the selected emoji to the input
+    setShowEmojiPicker(false); // Hide the emoji picker after selection
+  };
+
   return (
     <div>
-      <button className={`chat-toggle-btn ${isOpen ? 'hidden' : ''}`} onClick={toggleWidget}>
+      <button className={`chat-toggle-btn ${isOpen ? "hidden" : ""}`} onClick={toggleWidget}>
         💬
       </button>
       {isOpen && (
@@ -91,34 +98,34 @@ const ChatWidget = () => {
                 <BsCartDash className="cart-icon" size={20} />
                 <span className="chat-header-text">Chat with Leo</span>
               </div>
-              <button className="chat-close-btn" onClick={toggleWidget}>✖</button>
+              <button className="chat-close-btn" onClick={toggleWidget}>
+                ✖
+              </button>
             </div>
             <div className="chat-body">
               {messages.map((msg, index) => (
                 <div key={index} className={`chat-message ${msg.sender}`}>
-                {msg.sender === "ai" && <div className="chat-avatar">LT</div>}
-                <div className="chat-text">
-                  {msg.sender === "ai" ? (
-                    <ReactMarkdown
-                      components={{
-                        img: ({ node, ...props }) => (
-                          <img {...props} className="chat-image" />
-                        ),
-                        p: ({ node, children }) => <li>{children}</li>, 
-                        ul: ({ node, ...props }) => <ul className="chat-list" {...props} />, 
-                        ol: ({ node, ...props }) => <ol className="chat-list" {...props} />,
-                      }}
-                    >
-                      {msg.text}
-                    </ReactMarkdown>
-                  ) : (
-                    msg.text
-                  )}
+                  {msg.sender === "ai" && <div className="chat-avatar">LT</div>}
+                  <div className="chat-text">
+                    {msg.sender === "ai" && <div className="chat-ai-title">Leo.AI Assistant</div>}
+                    {msg.sender === "ai" ? (
+                      <ReactMarkdown
+                        components={{
+                          img: ({ node, ...props }) => <img {...props} className="chat-image" />,
+                          p: ({ node, children }) => <p>{children}</p>,
+                          ul: ({ node, ...props }) => <ul className="chat-list" {...props} />,
+                          ol: ({ node, ...props }) => <ol className="chat-list" {...props} />,
+                        }}
+                      >
+                        {msg.text}
+                      </ReactMarkdown>
+                    ) : (
+                      msg.text
+                    )}
+                  </div>
                 </div>
-              </div>
-              
               ))}
-              {isTyping && <div className="chat-message ai">...</div>}
+              {isTyping && <div className="chat-message ai typing">...</div>}
               <div ref={chatBoxRef}></div>
             </div>
             <div className="chat-input">
@@ -130,7 +137,18 @@ const ChatWidget = () => {
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 disabled={sending}
               />
-              <MdOutlineEmojiEmotions size={20} className="chat-icon emoji-icon" />
+              <div className="emoji-picker-container">
+                <MdOutlineEmojiEmotions
+                  size={20}
+                  className="chat-icon emoji-icon"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)} // Toggle emoji picker visibility
+                />
+                {showEmojiPicker && (
+                  <div className="emoji-picker">
+                    <EmojiPicker onEmojiClick={handleEmojiClick} /> {/* Render the emoji picker */}
+                  </div>
+                )}
+              </div>
               <CiLocationArrow1 onClick={sendMessage} size={20} className="chat-icon location-icon" />
             </div>
           </div>
