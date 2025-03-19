@@ -119,25 +119,35 @@
 }
 .chat-message.ai {
   background-color: #e0e0e0;
-  padding: 8px 12px;
   border-radius: 10px;
-  margin-top: 12px;
   align-self: flex-start;
   display: flex;
-  gap: 10px;
+  position: relative;
+  padding: 2px 5px;
+  padding-left: 1rlh; /* More space for the avatar */
+  margin-left: 20px; /* Pushes message further right */
+  max-width: 75%;
 }
-
-
+.chat-message.ai.typing {
+  padding-left: 7px; /* Override padding when typing */
+}
 .chat-avatar {
-  width: 50px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   background-color: #4d22d9;
   color: white;
   font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 70%;
+  border-radius: 50%;
+  font-size: 14px;
+  position: absolute;
+  left: -12.5%; /* Moves it further left */
+  top: 50%;
+  transform: translateY(-50%); /* Keep it centered vertically */
+  z-index: 2; /* Ensures it stays on top */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 .chat-message.user {
   background-color: #4d22d9;
@@ -145,7 +155,7 @@
   padding: 8px 12px;
   border-radius: 20px;
   align-self: flex-end;
-  margin-left: auto; /* Pushes the message further to the right */
+  margin-left: 10px; /* Pushes the message further to the right */
   max-width: 70%; /* Ensures the message doesn't take the full width */
 }
 
@@ -206,5 +216,21 @@
 .chat-list {
   padding-left: 20px;
   list-style-type: disc;
+}
+
+.chat-ai-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #4d22d9;
+  margin-bottom: 5px;
+  align-self: flex-start;
+}
+
+
+.emoji-picker {
+  position: absolute;
+  bottom: 40px; /* Adjust as needed */
+  right: 0;
+  z-index: 1000;
 }
 
